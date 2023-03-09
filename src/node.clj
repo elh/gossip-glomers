@@ -31,14 +31,15 @@
 
 ;; public fns
 
-(defn send
-  ([src dest body]
+(defn sendMsg
+  "Send a message body from a source node to a destination node."
+  [src dest body]
    {:src src
     :dest dest
-    :body body}))
+    :body body})
 
 (defn run
-  "Read input from stdin, handle, and send output to stdout"
+  "Run executes the main event handling loop. Read input from stdin, handle, and send output to stdout."
   [handler]
   (process-stdin (comp printout
                        generate-json
