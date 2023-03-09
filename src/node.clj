@@ -22,21 +22,30 @@
 (defn- generate-json
   "Generate json string from input"
   [input]
-  (json/generate-string input))
+  (when input
+    (json/generate-string input)))
 
 (defn- printout
   "Print the received input to stdout"
   [input]
-  (println input))
+  (when input
+    (println input)))
 
 ;; public fns
 
 (defn fmtMsg
-  "Formats a message with source node, destination node, and message body."
+  "Format a message with source node, destination node, and message body."
   [src dest body]
-   {:src src
-    :dest dest
-    :body body})
+  {:src src
+   :dest dest
+   :body body})
+
+(defn send!
+  "Send a message."
+  [src dest body]
+  (-> (fmtMsg src dest body)
+      generate-json
+      printout))
 
 (defn run
   "Run executes the main event handling loop. Read input from stdin, handle, and send output to stdout."

@@ -1,4 +1,4 @@
-.PHONY: run-1 run-2 run-3a run test lint wc check-env
+.PHONY: run-1 run-2 run-3a run-3b run test lint wc check-env
 
 run-1: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w echo --bin src/1_echo.clj --node-count 1 --time-limit 10
@@ -9,8 +9,11 @@ run-2: check-maelstrom
 run-3a: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w broadcast --bin src/3a_broadcast.clj --node-count 1 --time-limit 20 --rate 10
 
+run-3b: check-maelstrom
+	@${MAELSTROM_PATH}/maelstrom test -w broadcast --bin src/3b_multinode_broadcast.clj --node-count 5 --time-limit 20 --rate 10
+
 # runs all maelstrom tests
-run: run-1 run-2 run-3a
+run: run-1 run-2 run-3a run-3b
 
 maelstrom-serve: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom serve
