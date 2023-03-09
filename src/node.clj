@@ -31,8 +31,8 @@
 
 ;; public fns
 
-(defn sendMsg
-  "Send a message body from a source node to a destination node."
+(defn fmtMsg
+  "Formats a message with source node, destination node, and message body."
   [src dest body]
    {:src src
     :dest dest

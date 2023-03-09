@@ -1,5 +1,5 @@
 #!/usr/bin/env bb
-(ns unique-ids)
+(ns broadcast)
 
 (require '[babashka.classpath :as cp])
 (require '[babashka.fs :as fs])
@@ -9,6 +9,8 @@
 
 (def node-id (atom ""))
 (def next-message-id (atom 0))
+
+(def messages (atom ()))
 
 (defn- handler [input]
   (let [body (:body input)
@@ -21,12 +23,24 @@
         (node/fmtMsg @node-id
                       (:src input)
                       (assoc r-body :type "init_ok")))
-      "generate"
+      "broadcast"
+      (do
+        (swap! messages conj (:message body))
+        (node/fmtMsg @node-id
+                      (:src input)
+                      (assoc r-body :type "broadcast_ok")))
+      "read"
       (node/fmtMsg @node-id
                     (:src input)
                     (assoc r-body
-                           :type "generate_ok"
-                           :id (str (java.util.UUID/randomUUID)))))))
+                           :type "read_ok"
+                           :messages @messages))
+      "topology"
+      (do
+        (comment "TODO: implement topology")
+        (node/fmtMsg @node-id
+                      (:src input)
+                      (assoc r-body :type "topology_ok"))))))
 
 (defn -main []
   (node/run handler))
