@@ -19,14 +19,14 @@
       (do
         (reset! node-id (:node_id body))
         (node/send @node-id
-               (:src input)
-               (assoc r-body :type "init_ok")))
-      "echo"
+                    (:src input)
+                    (assoc r-body :type "init_ok")))
+      "generate"
       (node/send @node-id
-             (:src input)
-             (assoc r-body
-                    :type "echo_ok"
-                    :echo (:echo body))))))
+                  (:src input)
+                  (assoc r-body
+                         :type "generate_ok"
+                         :id (str (java.util.UUID/randomUUID)))))))
 
 (defn -main
   "Read transactions from stdin and send output to stdout"

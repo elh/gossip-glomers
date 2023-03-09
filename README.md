@@ -1,6 +1,8 @@
 # gossip-glomers 🙊
 
-Example test:
+Examples:
 ```
 make run-1
+
+make run
 ```

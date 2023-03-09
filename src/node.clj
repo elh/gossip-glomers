@@ -31,7 +31,7 @@
 
 ;; public fns
 
-(defn reply
+(defn send
   ([src dest body]
    {:src src
     :dest dest
