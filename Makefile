@@ -1,4 +1,4 @@
-.PHONY: run-1 run-2 run-3a run-3b run-3c run test lint wc check-env
+.PHONY: run-1 run-2 run-3a run-3b run-3c run-3d run test lint wc check-env
 
 run-1: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w echo --bin src/1_echo.clj --node-count 1 --time-limit 10
@@ -15,8 +15,15 @@ run-3b: check-maelstrom
 run-3c: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w broadcast --bin src/3c_fault_tolerant_broadcast.clj --node-count 5 --time-limit 20 --rate 10 --nemesis partition
 
+# Requirements:
+# * Messages-per-operation is below 30
+# * Median latency is below 400ms
+# * Maximum latency is below 600ms
+run-3d: check-maelstrom
+	@${MAELSTROM_PATH}/maelstrom test -w broadcast --bin src/3d_efficient_broadcast.clj --node-count 25 --time-limit 20 --rate 100 --latency 100
+
 # runs all maelstrom tests
-run: run-1 run-2 run-3a run-3b run-3c
+run: run-1 run-2 run-3a run-3b run-3c run-3d
 
 maelstrom-serve: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom serve
