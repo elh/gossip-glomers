@@ -37,19 +37,16 @@
         (node/fmtMsg @node-id
                      (:src input)
                      (assoc r-body :type "init_ok")))
-
       "broadcast"
       (do
         (swap! messages conj (:message body))
         (node/fmtMsg @node-id
                      (:src input)
                      (assoc r-body :type "broadcast_ok")))
-
       "gossip"
       (do
         (swap! messages set/union (set (:messages body)))
         nil)
-
       "read"
       (node/fmtMsg @node-id
                    (:src input)
