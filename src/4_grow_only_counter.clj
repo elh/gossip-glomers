@@ -82,9 +82,10 @@
                      (assoc r-body :type "init_ok")))
       "add"
       (let [node-id-key (keyword @node-id)]
-        (swap! version-vec assoc node-id-key
-               {:value (+ (get-in @version-vec [node-id-key :value] 0) (:delta body))
-                :version (inc (get-in @version-vec [node-id-key :version] 0))})
+        (swap! version-vec (fn [cur] (assoc cur
+                                            node-id-key
+                                            {:value (+ (get-in cur [node-id-key :value] 0) (:delta body))
+                                             :version (inc (get-in cur [node-id-key :version] 0))})))
         (node/fmtMsg @node-id
                      (:src input)
                      (assoc r-body :type "add_ok")))
