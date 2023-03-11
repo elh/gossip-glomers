@@ -29,9 +29,17 @@
   "Print the received input to stdout"
   [input]
   (when input
-    (println input)))
+    (locking *out* ;; this locking is essential for thread safety
+      (println input))))
 
 ;; public fns
+
+(defn log
+  "Print to stderr which maelstrom uses for logging"
+  [input]
+  (locking *err*
+    (binding [*out* *err*] ;; this locking is essential for thread safety
+      (println input))))
 
 (defn fmtMsg
   "Format a message with source node, destination node, and message body."
