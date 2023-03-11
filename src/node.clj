@@ -1,5 +1,5 @@
-;; common utilities for running maelstrom nodes
-;; adapted from maelstrom echo example
+;;;; Common utilities for running maelstrom nodes
+;; adapted Clojure helpers from maelstrom echo demo code
 
 (ns node
   (:require
