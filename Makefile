@@ -1,4 +1,4 @@
-.PHONY: run-1 run-2 run-3a run-3b run-3c run-3d run-3e run test lint wc check-env
+.PHONY: run-1 run-2 run-3a run-3b run-3c run-3d run-3e run-4 run test lint wc check-env
 
 run-1: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w echo --bin src/1_echo.clj --node-count 1 --time-limit 10
@@ -29,8 +29,11 @@ run-3d: check-maelstrom
 run-3e: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w broadcast --bin src/3e_efficient_broadcast_p2.clj --node-count 25 --time-limit 20 --rate 100 --latency 100
 
+run-4: check-maelstrom
+	@${MAELSTROM_PATH}/maelstrom test -w g-counter --bin src/4_grow_only_counter.clj --node-count 3 --rate 100 --time-limit 20 --nemesis partition
+
 # runs all maelstrom tests
-run: run-1 run-2 run-3a run-3b run-3c run-3d run-3e
+run: run-1 run-2 run-3a run-3b run-3c run-3d run-3e run-4
 
 maelstrom-serve: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom serve
