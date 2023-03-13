@@ -33,13 +33,13 @@
       "init"
       (do
         (reset! node-id (:node_id body))
-        (node/fmtMsg @node-id (:src input) (assoc r-body :type "init_ok")))
+        (node/fmt-msg @node-id (:src input) (assoc r-body :type "init_ok")))
 
       "send"
       (let [offset (- (System/currentTimeMillis) startMillis)]
         (swap! log update-in [(:key body)] (fnil conj []) [offset (:msg body)])
         (node/log (str "debug: send: log: " @log))
-        (node/fmtMsg @node-id (:src input) (assoc r-body
+        (node/fmt-msg @node-id (:src input) (assoc r-body
                                                   :type "send_ok"
                                                   :offset offset)))
 
@@ -49,7 +49,7 @@
                             (fn [k v]
                               (filterv #(>= (first %) (get-in (:offsets body) [(keyword k)])) v)))]
         (node/log (str "debug: poll: msgs: " msgs))
-        (node/fmtMsg @node-id (:src input) (assoc r-body
+        (node/fmt-msg @node-id (:src input) (assoc r-body
                                                   :type "poll_ok"
                                                   :msgs msgs)))
 
@@ -60,13 +60,13 @@
                                     %
                                     (:offsets body)))
         (node/log (str "debug: commit_offsets: commits: " @commits))
-        (node/fmtMsg @node-id (:src input) (assoc r-body :type "commit_offsets_ok")))
+        (node/fmt-msg @node-id (:src input) (assoc r-body :type "commit_offsets_ok")))
 
       "list_committed_offsets"
       (let [commits-snap @commits
             offsets (select-keys commits-snap (map keyword (:keys body)))]
         (node/log (str "debug: list_committed_offsets: offsets: " offsets))
-        (node/fmtMsg @node-id (:src input) (assoc r-body
+        (node/fmt-msg @node-id (:src input) (assoc r-body
                                                   :type "list_committed_offsets_ok"
                                                   :offsets offsets))))))
 

@@ -20,17 +20,17 @@
       "init"
       (do
         (reset! node-id (:node_id body))
-        (node/fmtMsg @node-id
+        (node/fmt-msg @node-id
                       (:src input)
                       (assoc r-body :type "init_ok")))
       "broadcast"
       (do
         (swap! messages conj (:message body))
-        (node/fmtMsg @node-id
+        (node/fmt-msg @node-id
                       (:src input)
                       (assoc r-body :type "broadcast_ok")))
       "read"
-      (node/fmtMsg @node-id
+      (node/fmt-msg @node-id
                     (:src input)
                     (assoc r-body
                            :type "read_ok"
@@ -38,7 +38,7 @@
       "topology"
       (do
         (comment "TODO: implement topology")
-        (node/fmtMsg @node-id
+        (node/fmt-msg @node-id
                       (:src input)
                       (assoc r-body :type "topology_ok"))))))
 

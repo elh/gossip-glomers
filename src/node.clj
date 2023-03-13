@@ -41,7 +41,7 @@
     (binding [*out* *err*] ;; this locking is essential for thread safety
       (println input))))
 
-(defn fmtMsg
+(defn fmt-msg
   "Format a message with source node, destination node, and message body."
   [src dest body]
   {:src src
@@ -51,7 +51,7 @@
 (defn send!
   "Send a message."
   [src dest body]
-  (-> (fmtMsg src dest body)
+  (-> (fmt-msg src dest body)
       generate-json
       printout))
 

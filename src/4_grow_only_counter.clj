@@ -77,26 +77,26 @@
       "init"
       (do
         (reset! node-id (:node_id body))
-        (node/fmtMsg @node-id
-                     (:src input)
-                     (assoc r-body :type "init_ok")))
+        (node/fmt-msg @node-id
+                      (:src input)
+                      (assoc r-body :type "init_ok")))
       "add"
       (let [node-id-key (keyword @node-id)]
         (swap! version-vec (fn [cur] (assoc cur
                                             node-id-key
                                             {:value (+ (get-in cur [node-id-key :value] 0) (:delta body))
                                              :version (inc (get-in cur [node-id-key :version] 0))})))
-        (node/fmtMsg @node-id
-                     (:src input)
-                     (assoc r-body :type "add_ok")))
+        (node/fmt-msg @node-id
+                      (:src input)
+                      (assoc r-body :type "add_ok")))
       "read"
       (let [v (reduce #(+ %1 (:value %2)) 0 (vals @version-vec))]
         (node/log (str "debug: version vector: " @version-vec))
-        (node/fmtMsg @node-id
-                     (:src input)
-                     (assoc r-body
-                            :type "read_ok"
-                            :value v)))
+        (node/fmt-msg @node-id
+                      (:src input)
+                      (assoc r-body
+                             :type "read_ok"
+                             :value v)))
       "gossip"
       (do
         (swap! version-vec #(merge-with (fn [v1 v2]

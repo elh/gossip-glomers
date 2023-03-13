@@ -41,31 +41,31 @@
       "init"
       (do
         (reset! node-id (:node_id body))
-        (node/fmtMsg @node-id
-                     (:src input)
-                     (assoc r-body :type "init_ok")))
+        (node/fmt-msg @node-id
+                      (:src input)
+                      (assoc r-body :type "init_ok")))
       "broadcast"
       (do
         (swap! messages conj (:message body))
-        (node/fmtMsg @node-id
-                     (:src input)
-                     (assoc r-body :type "broadcast_ok")))
+        (node/fmt-msg @node-id
+                      (:src input)
+                      (assoc r-body :type "broadcast_ok")))
       "gossip"
       (do
         (swap! messages set/union (set (:messages body)))
         nil)
       "read"
-      (node/fmtMsg @node-id
-                   (:src input)
-                   (assoc r-body
-                          :type "read_ok"
-                          :messages (seq @messages)))
+      (node/fmt-msg @node-id
+                    (:src input)
+                    (assoc r-body
+                           :type "read_ok"
+                           :messages (seq @messages)))
       "topology"
       (do
         (reset! topology (:topology body))
-        (node/fmtMsg @node-id
-                     (:src input)
-                     (assoc r-body :type "topology_ok"))))))
+        (node/fmt-msg @node-id
+                      (:src input)
+                      (assoc r-body :type "topology_ok"))))))
 
 (defn -main []
   (future (gossip)) ;; gossip in another thread

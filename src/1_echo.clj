@@ -18,11 +18,11 @@
       "init"
       (do
         (reset! node-id (:node_id body))
-        (node/fmtMsg @node-id
+        (node/fmt-msg @node-id
                       (:src input)
                       (assoc r-body :type "init_ok")))
       "echo"
-      (node/fmtMsg @node-id
+      (node/fmt-msg @node-id
                     (:src input)
                     (assoc r-body
                            :type "echo_ok"
