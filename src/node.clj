@@ -111,13 +111,14 @@
   handler."
   [handler]
   (process-stdin (comp (fn [req]
-                         (log req)
-                         (if (= (get-in req [:body :type]) "init")
-                           (do
-                             (deliver node-id (get-in req [:body :node_id]))
-                             (deliver node-ids (get-in req [:body :node_ids]))
-                             (reply! req {:type :init_ok}))
-                           (handler req)))
+                         (if (get-in req [:body :in_reply_to])
+                           (handle-reply! req)
+                           (if (= (get-in req [:body :type]) "init")
+                             (do
+                               (deliver node-id (get-in req [:body :node_id]))
+                               (deliver node-ids (get-in req [:body :node_ids]))
+                               (reply! req {:type :init_ok}))
+                             (handler req))))
                        parse-json)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
