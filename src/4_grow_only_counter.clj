@@ -2,7 +2,7 @@
 (load-file (clojure.string/replace *file* #"/[^/]+$" "/node.clj"))
 
 (ns grow-only-counter
-  (:require [node :refer [then]]))
+  (:require [node]))
 
 ;;;; Grow-only counter, state-based CRDT implemented with a version vector and gossip.
 

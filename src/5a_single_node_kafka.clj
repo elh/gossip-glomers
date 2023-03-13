@@ -1,11 +1,8 @@
 #!/usr/bin/env bb
-(ns single-node-kafka)
+(load-file (clojure.string/replace *file* #"/[^/]+$" "/node.clj"))
 
-(require '[babashka.classpath :as cp])
-(require '[babashka.fs :as fs])
-(cp/add-classpath (str (fs/file (fs/parent *file*))))
-
-(require 'node)
+(ns single-node-kafka
+  (:require [node]))
 
 ;;;; A single node log
 
