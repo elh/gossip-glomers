@@ -16,8 +16,6 @@
 ;; with the magnitude of the offset numbers.
 (def startMillis (System/currentTimeMillis))
 
-(def node-id (atom ""))
-(def next-message-id (atom 0))
 (def log (atom {}))              ;; key to msg vector [<offset>, <msg>]
 (def commits (atom {}))          ;; key to committed offset
 
@@ -25,23 +23,16 @@
 (defn map-kv->v [m f]
   (into {} (for [[k v] m] [k (f k v)])))
 
-(defn- handler [input]
-  (let [body (:body input)
-        r-body {:msg_id (swap! next-message-id inc)
-                :in_reply_to (:msg_id body)}]
+(defn- handler [req]
+  (let [body (:body req)]
     (case (:type body)
-      "init"
-      (do
-        (reset! node-id (:node_id body))
-        (node/fmt-msg @node-id (:src input) (assoc r-body :type "init_ok")))
 
       "send"
       (let [offset (- (System/currentTimeMillis) startMillis)]
         (swap! log update-in [(:key body)] (fnil conj []) [offset (:msg body)])
         (node/log (str "debug: send: log: " @log))
-        (node/fmt-msg @node-id (:src input) (assoc r-body
-                                                  :type "send_ok"
-                                                  :offset offset)))
+        (node/reply! req {:type "send_ok"
+                          :offset offset}))
 
       "poll"
       (let [log-snap @log
@@ -49,9 +40,8 @@
                             (fn [k v]
                               (filterv #(>= (first %) (get-in (:offsets body) [(keyword k)])) v)))]
         (node/log (str "debug: poll: msgs: " msgs))
-        (node/fmt-msg @node-id (:src input) (assoc r-body
-                                                  :type "poll_ok"
-                                                  :msgs msgs)))
+        (node/reply! req {:type "poll_ok"
+                          :msgs msgs}))
 
       "commit_offsets"
       (do
@@ -60,15 +50,14 @@
                                     %
                                     (:offsets body)))
         (node/log (str "debug: commit_offsets: commits: " @commits))
-        (node/fmt-msg @node-id (:src input) (assoc r-body :type "commit_offsets_ok")))
+        (node/reply! req {:type "commit_offsets_ok"}))
 
       "list_committed_offsets"
       (let [commits-snap @commits
             offsets (select-keys commits-snap (map keyword (:keys body)))]
         (node/log (str "debug: list_committed_offsets: offsets: " offsets))
-        (node/fmt-msg @node-id (:src input) (assoc r-body
-                                                  :type "list_committed_offsets_ok"
-                                                  :offsets offsets))))))
+        (node/reply! req {:type "list_committed_offsets_ok"
+                          :offsets offsets})))))
 
 
 (defn -main []

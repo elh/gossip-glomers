@@ -7,26 +7,13 @@
 
 (require 'node)
 
-(def node-id (atom ""))
-(def next-message-id (atom 0))
-
-(defn- handler [input]
-  (let [body (:body input)
-        r-body {:msg_id (swap! next-message-id inc)
-                :in_reply_to (:msg_id body)}]
+(defn- handler [req]
+  (let [body (:body req)]
     (case (:type body)
-      "init"
-      (do
-        (reset! node-id (:node_id body))
-        (node/fmt-msg @node-id
-                      (:src input)
-                      (assoc r-body :type "init_ok")))
       "generate"
-      (node/fmt-msg @node-id
-                    (:src input)
-                    (assoc r-body
-                           :type "generate_ok"
-                           :id (str (java.util.UUID/randomUUID)))))))
+      (node/reply! req
+                   {:type "generate_ok"
+                    :id (str (java.util.UUID/randomUUID))}))))
 
 (defn -main []
   (node/run handler))

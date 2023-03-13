@@ -1,18 +1,13 @@
 #!/usr/bin/env bb
-(ns grow-only-counter)
+(load-file (clojure.string/replace *file* #"/[^/]+$" "/node.clj"))
+
+(ns grow-only-counter
+  (:require [node :refer [then]]))
 
 ;;;; Grow-only counter, state-based CRDT implemented with a version vector and gossip.
 
-(require '[babashka.classpath :as cp])
-(require '[babashka.fs :as fs])
-(cp/add-classpath (str (fs/file (fs/parent *file*))))
-
-(require 'node)
-
 ;;; Node state
 
-(def node-id (atom ""))
-(def next-message-id (atom 0))
 (def version-vec (atom {}))     ;; version vector mapping node id to versioned value
 (def members (atom []))         ;; cluster membership
 
@@ -23,26 +18,25 @@
 (def register-freq 1000) ;; add jitter?
 (defn- register-membership []
   (loop []
-    (when-not (some #{@node-id} @members)
-      (when (not= @node-id "")
-        (node/send! @node-id
-                    "seq-kv"
-                    {:type "cas"
-                     :key "members"
-                     :from @members
-                     :to (conj @members @node-id)
-                     :create_if_not_exists true}))
+    (when-not (some #{@node/node-id} @members)
+      (-> (node/rpc! "seq-kv"
+                     {:type "cas"
+                      :key "members"
+                      :from @members
+                      :to (conj @members @node/node-id)
+                      :create_if_not_exists true}))
       (Thread/sleep register-freq)
       (recur))))
 
 (def check-freq 1000)
 (defn- check-membership []
   (loop []
-    (when (not= @node-id "")
-      (node/send! @node-id
-                  "seq-kv"
-                  {:type "read"
-                   :key "members"}))
+    (-> (node/rpc! "seq-kv"
+                   {:type "read"
+                    :key "members"})
+        (then [body]
+              (when (get-in body [:value])
+                (reset! members (get-in body [:value])))))
     (Thread/sleep check-freq)
     (recur)))
 
@@ -61,60 +55,37 @@
 (defn- gossip []
   (loop []
     (doseq [node @members]
-      (when (and (not= node @node-id) (< (rand) gossip-prob))
-        (node/send! @node-id
-                    node
+      (when (and (not= node @node/node-id) (< (rand) gossip-prob))
+        (node/send! node
                     {:type "gossip"
                      :version-vec @version-vec})))
     (Thread/sleep gossip-freq)
     (recur)))
 
-(defn- handler [input]
-  (let [body (:body input)
-        r-body {:msg_id (swap! next-message-id inc)
-                :in_reply_to (:msg_id body)}]
+(defn- handler [req]
+  (let [body (:body req)]
     (case (:type body)
-      "init"
-      (do
-        (reset! node-id (:node_id body))
-        (node/fmt-msg @node-id
-                      (:src input)
-                      (assoc r-body :type "init_ok")))
       "add"
-      (let [node-id-key (keyword @node-id)]
+      (let [node-id-key (keyword @node/node-id)]
         (swap! version-vec (fn [cur] (assoc cur
                                             node-id-key
                                             {:value (+ (get-in cur [node-id-key :value] 0) (:delta body))
                                              :version (inc (get-in cur [node-id-key :version] 0))})))
-        (node/fmt-msg @node-id
-                      (:src input)
-                      (assoc r-body :type "add_ok")))
+        (node/reply! req
+                     {:type "add_ok"}))
       "read"
       (let [v (reduce #(+ %1 (:value %2)) 0 (vals @version-vec))]
         (node/log (str "debug: version vector: " @version-vec))
-        (node/fmt-msg @node-id
-                      (:src input)
-                      (assoc r-body
-                             :type "read_ok"
-                             :value v)))
+        (node/reply! req
+                     {:type "read_ok"
+                      :value v}))
       "gossip"
-      (do
-        (swap! version-vec #(merge-with (fn [v1 v2]
-                                          (if (> (:version v1) (:version v2))
-                                            v1
-                                            v2))
-                                        %
-                                        (:version-vec body)))
-        nil)
-      ;; assumes this is the read response for "members" in the seq-kv
-      "read_ok"
-      (do
-        (reset! members (:value body))
-        nil)
-
-      ;; ignored
-      "cas_ok" nil
-      "error" nil)))
+      (swap! version-vec #(merge-with (fn [v1 v2]
+                                        (if (> (:version v1) (:version v2))
+                                          v1
+                                          v2))
+                                      %
+                                      (:version-vec body))))))
 
 (defn -main []
   ;; in the background, manage membership and gossip state
