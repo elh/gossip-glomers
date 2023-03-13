@@ -2,43 +2,11 @@
 (load-file (clojure.string/replace *file* #"/[^/]+$" "/node.clj"))
 
 (ns grow-only-counter
-  (:require [node :refer [then]]))
+  (:require [node]))
 
 ;;;; Grow-only counter, state-based CRDT implemented with a version vector and gossip.
 
-;;; Node state
-
 (def version-vec (atom {}))     ;; version vector mapping node id to versioned value
-(def members (atom []))         ;; cluster membership
-
-;;; Cluster membership
-;;;
-;;; We use the seq-kv service only for eventually consistent cluster membership.
-
-(def register-freq 1000) ;; add jitter?
-(defn- register-membership []
-  (loop []
-    (when-not (some #{@node/node-id} @members)
-      (-> (node/rpc! "seq-kv"
-                     {:type "cas"
-                      :key "members"
-                      :from @members
-                      :to (conj @members @node/node-id)
-                      :create_if_not_exists true}))
-      (Thread/sleep register-freq)
-      (recur))))
-
-(def check-freq 1000)
-(defn- check-membership []
-  (loop []
-    (-> (node/rpc! "seq-kv"
-                   {:type "read"
-                    :key "members"})
-        (then [body]
-              (when (get-in body [:value])
-                (reset! members (get-in body [:value])))))
-    (Thread/sleep check-freq)
-    (recur)))
 
 ;;; G-Counter
 ;;;
@@ -54,7 +22,7 @@
 (def gossip-prob 0.5)
 (defn- gossip []
   (loop []
-    (doseq [node @members]
+    (doseq [node @node/node-ids]
       (when (and (not= node @node/node-id) (< (rand) gossip-prob))
         (node/send! node
                     {:type "gossip"
@@ -88,9 +56,7 @@
                                       (:version-vec body))))))
 
 (defn -main []
-  ;; in the background, manage membership and gossip state
-  (future (check-membership))
-  (future (register-membership))
+  ;; in the background, gossip state
   (future (gossip))
   (node/run handler))
 

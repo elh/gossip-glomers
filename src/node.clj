@@ -25,19 +25,6 @@
     (catch Exception _
       nil)))
 
-(defn- generate-json
-  "Generate json string from input"
-  [input]
-  (when input
-    (json/generate-string input)))
-
-(defn- printout
-  "Print the received input to stdout"
-  [input]
-  (when input
-    (locking *out* ;; this locking is essential for thread safety
-      (println input))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; state
@@ -69,19 +56,11 @@
     (binding [*out* *err*] ;; this locking is essential for thread safety
       (println input))))
 
-(defn- fmt-msg
-  "Format a message with source node, destination node, and message body."
-  [src dest body]
-  {:src src
-   :dest dest
-   :body body})
-
 (defn send!
   "Send a message."
   [dest body]
-  (-> (fmt-msg @node-id dest body)
-      generate-json
-      printout))
+  (locking *out*
+    (println (json/generate-string {:src @node-id :dest dest :body body}))))
 
 (defn reply!
   "Replies to a request message with the given body."
