@@ -14,7 +14,7 @@
 
 ;; WARN: without scaling down the offsets, maelstrom result processing and graphing was OOMing. something there scales
 ;; with the magnitude of the offset numbers.
-(def startMillis (System/currentTimeMillis))
+(def startNanos (System/nanoTime))
 
 (def log (atom {}))              ;; key to msg vector [<offset>, <msg>]
 (def commits (atom {}))          ;; key to committed offset
@@ -28,7 +28,7 @@
     (case (:type body)
 
       "send"
-      (let [offset (- (System/currentTimeMillis) startMillis)]
+      (let [offset (int (Math/floor (/ (- (System/nanoTime) startNanos) 100000)))]
         (swap! log update-in [(:key body)] (fnil conj []) [offset (:msg body)])
         (node/log (str "debug: send: log: " @log))
         (node/reply! req {:type "send_ok"
