@@ -7,40 +7,25 @@
 
 (require 'node)
 
-(def node-id (atom ""))
-(def next-message-id (atom 0))
-
 (def messages (atom ()))
 
-(defn- handler [input]
-  (let [body (:body input)
-        r-body {:msg_id (swap! next-message-id inc)
-                :in_reply_to (:msg_id body)}]
+(defn- handler [req]
+  (let [body (:body req)]
     (case (:type body)
-      "init"
-      (do
-        (reset! node-id (:node_id body))
-        (node/fmt-msg @node-id
-                      (:src input)
-                      (assoc r-body :type "init_ok")))
       "broadcast"
       (do
         (swap! messages conj (:message body))
-        (node/fmt-msg @node-id
-                      (:src input)
-                      (assoc r-body :type "broadcast_ok")))
+        (node/reply! req
+                     {:type "broadcast_ok"}))
       "read"
-      (node/fmt-msg @node-id
-                    (:src input)
-                    (assoc r-body
-                           :type "read_ok"
-                           :messages @messages))
+      (node/reply! req
+                   {:type "read_ok"
+                    :messages @messages})
       "topology"
       (do
         (comment "TODO: implement topology")
-        (node/fmt-msg @node-id
-                      (:src input)
-                      (assoc r-body :type "topology_ok"))))))
+        (node/reply! req
+                     {:type "topology_ok"})))))
 
 (defn -main []
   (node/run handler))
