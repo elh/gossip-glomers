@@ -1,13 +1,10 @@
 #!/usr/bin/env bb
-(ns grow-only-counter)
+(load-file (clojure.string/replace *file* #"/[^/]+$" "/node.clj"))
+
+(ns grow-only-counter
+  (:require [node :refer [then]]))
 
 ;;;; Grow-only counter, state-based CRDT implemented with a version vector and gossip.
-
-(require '[babashka.classpath :as cp])
-(require '[babashka.fs :as fs])
-(cp/add-classpath (str (fs/file (fs/parent *file*))))
-
-(require 'node)
 
 ;;; Node state
 
@@ -22,21 +19,24 @@
 (defn- register-membership []
   (loop []
     (when-not (some #{@node/node-id} @members)
-      (node/send! "seq-kv"
-                  {:type "cas"
-                   :key "members"
-                   :from @members
-                   :to (conj @members @node/node-id)
-                   :create_if_not_exists true})
+      (-> (node/rpc! "seq-kv"
+                     {:type "cas"
+                      :key "members"
+                      :from @members
+                      :to (conj @members @node/node-id)
+                      :create_if_not_exists true}))
       (Thread/sleep register-freq)
       (recur))))
 
 (def check-freq 1000)
 (defn- check-membership []
   (loop []
-    (node/send! "seq-kv"
-                {:type "read"
-                 :key "members"})
+    (-> (node/rpc! "seq-kv"
+                   {:type "read"
+                    :key "members"})
+        (then [body]
+              (when (get-in body [:value])
+                (reset! members (get-in body [:value])))))
     (Thread/sleep check-freq)
     (recur)))
 
@@ -85,14 +85,7 @@
                                           v1
                                           v2))
                                       %
-                                      (:version-vec body)))
-      ;; assumes this is the read response for "members" in the seq-kv
-      "read_ok"
-      (reset! members (:value body))
-
-      ;; ignored
-      "cas_ok" nil
-      "error" nil)))
+                                      (:version-vec body))))))
 
 (defn -main []
   ;; in the background, manage membership and gossip state

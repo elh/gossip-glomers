@@ -1,7 +1,9 @@
 ;;;; Common utilities for running maelstrom nodes
+
 ;; Adapted from maelstrom clj demo code. I started by generalizing the "echo"
-;; code and hit a wall after requiring rpc logic in challenge 5b. Using aphyr's
-;; nifty futures implementation.
+;; code but started adopting the node implementation more fully after challenge
+;; 5b b/c goal was to focus on the glomers. Using aphyr's nifty futures
+;; implementation.
 
 (ns node
   (:require
