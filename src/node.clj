@@ -3,13 +3,12 @@
 ;; Adapted from maelstrom clj demo code. I started by generalizing the "echo"
 ;; code but started adopting the node implementation more fully after challenge
 ;; 5b b/c goal was to focus on the glomers. Using aphyr's nifty futures
-;; implementation.
+;; implementation for RPC calls.
 
 (ns node
   (:require
    [cheshire.core :as json])
-  (:import (java.util.concurrent CompletableFuture)
-           (java.util.function Function)))
+  (:import (java.util.concurrent CompletableFuture)))
 
 (defn- process-stdin
   "Read lines from the stdin and calls the handler"
@@ -79,12 +78,9 @@
 
 (defn handle-reply!
   "Handles a reply to an RPC we issued."
-  [{:keys [body] :as reply}]
+  [{:keys [body]}]
   (when-let [fut (get @rpcs (:in_reply_to body))]
-    (if (= "error" (:type body))
-      (.completeExceptionally fut (ex-info (:text body)
-                                           (dissoc body :type :text)))
-      (.complete fut body)))
+    (.complete fut body))
   (swap! rpcs dissoc (:in_reply_to body)))
 
 (defn run
@@ -101,17 +97,3 @@
                                (reply! req {:type :init_ok}))
                              (handler req))))
                        parse-json)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; macros
-
-(defmacro then
-  "Takes a CompletableFuture, a binding vector with a symbol for the value of
-  that future and a body. Returns a CompletableFuture which evaluates body with
-  the value bound."
-  [fut [sym] & body]
-  `(.thenApply ^CompletableFuture ~fut
-               (reify Function
-                 (apply [this# ~sym]
-                   ~@body))))
