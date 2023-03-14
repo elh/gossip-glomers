@@ -5,10 +5,10 @@
   (:require [node]))
 
 ;;;; A multi-node log
-;; Leveraging maelstrom's linearizable key value service (and very coarse-grained data transfer)
+;; Leveraging maelstrom's linearizable key value service.
 ;;
 ;; In this example, the are leightweight abstractions over the key value store. We are
-;; very bandwidth inefficiently writing the entire log in this naive impl.
+;; very bandwidth inefficiently writing the entire log for a key in this naive impl.
 (def db "lin-kv")
 
 ;;; RPC functions
@@ -68,7 +68,7 @@
                 update-resp (update-log! (:key body) cur [offset (:msg body)])]
             (if (= (:type update-resp) "error")
               (do
-                (node/log (str "debug: cas error. retrying"))
+                (node/log (str "debug: send: cas error. retrying"))
                 (recur))
               (node/reply! req {:type "send_ok"
                                 :offset offset}))))
@@ -83,9 +83,13 @@
                             :msgs filtered-msgs}))
 
         "commit_offsets"
-        (do
-          (update-commits! (read-commits) (:offsets body))
-          (node/reply! req {:type "commit_offsets_ok"}))
+        (loop []
+          (let [update-resp (update-commits! (read-commits) (:offsets body))]
+            (if (= (:type update-resp) "error")
+              (do
+                (node/log (str "debug: commit_offsets: cas error. retrying"))
+                (recur))
+              (node/reply! req {:type "commit_offsets_ok"}))))
 
         "list_committed_offsets"
         (let [offsets (select-keys (read-commits) (map keyword (:keys body)))]
