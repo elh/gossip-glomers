@@ -79,12 +79,9 @@
 
 (defn handle-reply!
   "Handles a reply to an RPC we issued."
-  [{:keys [body] :as reply}]
+  [{:keys [body]}]
   (when-let [fut (get @rpcs (:in_reply_to body))]
-    (if (= "error" (:type body))
-      (.completeExceptionally fut (ex-info (:text body)
-                                           (dissoc body :type :text)))
-      (.complete fut body)))
+    (.complete fut body))
   (swap! rpcs dissoc (:in_reply_to body)))
 
 (defn run

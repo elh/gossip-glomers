@@ -6,9 +6,6 @@
 
 ;;;; A single node log
 
-;; WARN: there is a lot of gross and finicky conversions between keywords and strings/numbers due to how Clojure
-;; converts JSON. Be aware of `name` and `keyword` calls.
-
 ;; WARN: without scaling down the offsets, maelstrom result processing and graphing was OOMing. something there scales
 ;; with the magnitude of the offset numbers.
 (def startNanos (System/nanoTime))
