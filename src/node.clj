@@ -95,5 +95,5 @@
                                (deliver node-id (get-in req [:body :node_id]))
                                (deliver node-ids (get-in req [:body :node_ids]))
                                (reply! req {:type :init_ok}))
-                             (handler req))))
+                             (future (handler req)))))
                        parse-json)))
