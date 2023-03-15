@@ -20,6 +20,7 @@
 (def commits (atom {}))
 
 (def send-mtxs (atom {})) ;; keys -> monitor
+(def logs (atom {}))      ;; keys -> log
 
 ;;; RPC functions
 ;; as synchronous functions.
@@ -78,7 +79,7 @@
 (defn- handler [req]
   (let [body (:body req)]
     (case (:type body)
-      ;; Forward sends to key leader
+      ;; Forward sends to key leader. Commit leader gets to cache their own writes.
       "send"
       (let [key-leader (nth @node/node-ids (mod (hash (:key body)) (count @node/node-ids)))]
         ;; ensure we are not clobbering the existing value being used as lock monitor
@@ -109,7 +110,7 @@
         (node/reply! req {:type "poll_ok"
                           :msgs filtered-msgs}))
 
-      ;; Forward all commits to the commit leader
+      ;; Forward all commits to the commit leader. Commit leader gets to cache their own writes.
       "commit_offsets"
       (let [commit-leader (first @node/node-ids)]
         (if (= @node/node-id commit-leader)
@@ -126,7 +127,11 @@
           (node/reply! req (forward! commit-leader body))))
 
       "list_committed_offsets"
-      (let [offsets (select-keys (read-commits) (map keyword (:keys body)))]
+      (let [commit-leader (first @node/node-ids)
+            commits (if (= @node/node-id commit-leader)
+                      @commits
+                      (read-commits))
+            offsets (select-keys commits (map keyword (:keys body)))]
         (node/reply! req {:type "list_committed_offsets_ok"
                           :offsets offsets})))))
 
