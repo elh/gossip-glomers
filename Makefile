@@ -1,4 +1,4 @@
-.PHONY: run-1 run-2 run-3a run-3b run-3c run-3d run-3e run-4 run-5a run-5b run test lint wc check-env
+.PHONY: run-1 run-2 run-3a run-3b run-3c run-3d run-3e run-4 run-5a run-5b run-5c run test lint wc check-env
 
 run-1: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w echo --bin src/1_echo.clj --node-count 1 --time-limit 10
@@ -38,8 +38,11 @@ run-5a: check-maelstrom
 run-5b: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom test -w kafka --bin src/5b_multi_node_kafka.clj --node-count 2 --concurrency 2n --time-limit 20 --rate 1000
 
+run-5c: check-maelstrom
+	@${MAELSTROM_PATH}/maelstrom test -w kafka --bin src/5c_efficient_kafka.clj --node-count 2 --concurrency 2n --time-limit 20 --rate 1000
+
 # runs all maelstrom tests
-run: run-1 run-2 run-3a run-3b run-3c run-3d run-3e run-4 run-5a run-5b
+run: run-1 run-2 run-3a run-3b run-3c run-3d run-3e run-4 run-5a run-5b run-5c
 
 maelstrom-serve: check-maelstrom
 	@${MAELSTROM_PATH}/maelstrom serve
