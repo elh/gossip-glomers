@@ -19,3 +19,5 @@ References:
 * [Wikipedia: Conflict-free replicated data type > G-Counter (Grow-only Counter)](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type#G-Counter_(Grow-only_Counter))
 * [Wikipedia: Version vector](https://en.wikipedia.org/wiki/Version_vector)
 * [Tyler Treat: Building a Distributed Log from Scratch, Part 2: Data Replication](https://bravenewgeek.com/building-a-distributed-log-from-scratch-part-2-data-replication/)
+* [Wikipedia: Chord](https://en.wikipedia.org/wiki/Chord_(peer-to-peer))
+* [Wikipedia: Consistent Hashing](https://en.wikipedia.org/wiki/Consistent_hashing)

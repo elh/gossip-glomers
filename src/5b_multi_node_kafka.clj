@@ -8,8 +8,8 @@
 ;; Leveraging maelstrom's linearizable key value service. Using it like a centralized
 ;; leader.
 ;;
-;; In this example, the are leightweight abstractions over the key value store. We are
-;; very bandwidth inefficiently writing the entire log for a key in this naive impl.
+;; We are writing the entire log for a key very bandwidth inefficiently in this
+;; naive impl.
 (def db "lin-kv")
 
 ;;; RPC functions
