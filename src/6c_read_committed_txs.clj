@@ -25,18 +25,18 @@
   (let [body (:body req)]
     (case (:type body)
       "txn"
-      (let [res (reduce (fn [{:keys [db-snaphot stmts]} [op a1 a2]]
+      (let [res (reduce (fn [{:keys [db-snapshot stmts]} [op a1 a2]]
                           (case op
-                            "r" {:db-snaphot db-snaphot
-                                 :stmts (conj stmts [op a1 (get db-snaphot a1)])}
-                            "w" {:db-snaphot (assoc db-snaphot a1 a2)
+                            "r" {:db-snapshot db-snapshot
+                                 :stmts (conj stmts [op a1 (get db-snapshot a1)])}
+                            "w" {:db-snapshot (assoc db-snapshot a1 a2)
                                  :stmts (conj stmts [op a1 a2])}))
-                        {:db-snaphot @db
+                        {:db-snapshot @db
                          :stmts []}
                         (:txn body))
-            {db-snapshot :db-snaphot stmts :stmts} res]
+            {db-snapshot :db-snapshot stmts :stmts} res]
         (reset! db db-snapshot)
-        ;; On commit, broadcast this nodes state to all other nodes
+        ;; On commit, broadcast this node's state to all other nodes
         (doseq [node @node/node-ids]
           (when (not= node @node/node-id)
             (node/send! node

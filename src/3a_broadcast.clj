@@ -22,10 +22,8 @@
                    {:type "read_ok"
                     :messages @messages})
       "topology"
-      (do
-        (comment "TODO: implement topology")
-        (node/reply! req
-                     {:type "topology_ok"})))))
+      (node/reply! req
+                   {:type "topology_ok"}))))
 
 (defn -main []
   (node/run handler))
