@@ -37,8 +37,7 @@
       ;; (node/log (str "merge-db: old db: " old))
       ;; (node/log (str "merge-db: new db: " new))
       ;; (node/log (str "merge-db: merged db: " merged))
-      (reset! db merged)
-      )))
+      (reset! db merged))))
 
 (defn write-db-snapshot [db-snapshot key value]
   (if (contains? db-snapshot key)

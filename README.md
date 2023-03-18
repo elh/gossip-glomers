@@ -21,5 +21,6 @@ Relevant reading:
 * [Wikipedia: Chord](https://en.wikipedia.org/wiki/Chord_(peer-to-peer))
 * [Wikipedia: Consistent Hashing](https://en.wikipedia.org/wiki/Consistent_hashing)
 * [Jepsen: Consistency Models](https://jepsen.io/consistency)
+* [Wikipedia: Eventual consistency](https://en.wikipedia.org/wiki/Eventual_consistency)
 
 Long time fan of Jepsen and Aphyr's writing so I loved this. [Maelstrom](https://github.com/jepsen-io/maelstrom) is awesome 🌀
